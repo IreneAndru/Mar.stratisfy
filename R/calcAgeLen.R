@@ -43,8 +43,7 @@ calcAgeLen<-function(requested = NULL, agency = NULL, dfNWSets = NULL,
     #remove records without weight or totalno
     agelen <- dfNWSets
     agelen <- merge(agelen, dfRawDet, by=c("MISSION", "SETNO","SIZE_CLASS"), all.x=T) 
-    agelen <- merge(agelen, dfRawInf[,c("MISSION", "SETNO", "STRAT",
-                                        "DIST","DMIN","DMAX","DEPTH","TIME")], 
+    agelen <- merge(agelen, dfRawInf[,c("MISSION", "SETNO", "STRAT","DIST","DMIN","DMAX","DEPTH","TIME","ASW")], 
                     by=c("MISSION", "SETNO", "STRAT"), all.x=T) 
     
     if (nrow(agelen[is.na(agelen$BINWIDTH),])>0){
@@ -58,7 +57,6 @@ calcAgeLen<-function(requested = NULL, agency = NULL, dfNWSets = NULL,
     if (nrow( agelen[is.na(agelen$FLEN),])>0) agelen[is.na(agelen$FLEN),]$FLEN <- 0
     agelen$FLEN<-floor(agelen$FLEN/agelen$BINWIDTH)*agelen$BINWIDTH 
     agelen$CAGE<-NA
-    if (agency=="DFO"){
       #if sampwgt is 0 or NA and totwgt is not null or 0 
       #then replace sample weigt with total weight 
       if ( nrow(agelen[(is.na(agelen$SAMPWGT)|agelen$SAMPWGT==0) & 
@@ -86,9 +84,6 @@ calcAgeLen<-function(requested = NULL, agency = NULL, dfNWSets = NULL,
         agelen[which(agelen$CAGE == 0 & agelen$TOTNO !=0),]$CAGE<-
           agelen[which(agelen$CAGE == 0 & agelen$TOTNO !=0),]$TOTNO*agelen[which(agelen$CAGE == 0 & agelen$TOTNO !=0),]$CLEN/agelen[which(agelen$CAGE == 0 & agelen$TOTNO !=0),]$RAW_TOTNO
       
-    }else if (agency=="NMFS"){
-      agelen$CAGE<-agelen$CLEN
-    }
     agelen$FLEN<-agelen$FLEN+(agelen$BINWIDTH*.5)-.5
     
     if (bySex) {
