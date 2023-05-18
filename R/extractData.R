@@ -93,7 +93,7 @@ i.dmin,i.dmax,i.depth, i.dur,i.dist
     
 
     raw.gsinf<-oracle_cxn$thecmd(oracle_cxn$channel, sql )
-    #if (agency=="NMFS") raw.gsinf$STRAT<-sprintf("%05d", raw.gsinf$STRAT)
+    if (agency=="NMFS") raw.gsinf$DIST<-raw.gsinf$ASW*(0.539957^2) #Converting the DIST variable for the US data into nautical miles for application
    
       raw.gsinf$SLAT = (as.numeric(substr(raw.gsinf$SLAT,1,2))+(raw.gsinf$SLAT - as.numeric(substr(raw.gsinf$SLAT,1,2))*100)/60)
       raw.gsinf$SLONG = (as.numeric(substr(raw.gsinf$SLONG,1,2))+(raw.gsinf$SLONG - as.numeric(substr(raw.gsinf$SLONG,1,2))*100)/60)*-1
