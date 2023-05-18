@@ -77,16 +77,20 @@ i.dmin,i.dmax,i.depth, i.dur,i.dist
     }else if (agency=="NMFS"){
       #distance was assumed to be 1.75, but appears to be dopdistb
       sql<-
-        paste("SELECT CRUISE6 mission,to_number(station) setno, begin_est_towdate sdate, est_time time, STRATUM strat, 
-          area unit_area,  BEGLAT slat, BEGLON slong, mindepth dmin, maxdepth dmax, avgdepth depth, towdur dur, dopdistb dist 
-          FROM USNEFSC.USS_STATION I
-          WHERE 
+        paste("SELECT I.CRUISE6 mission,to_number(I.station) setno, i.begin_est_towdate sdate, i.est_time time, i.STRATUM strat, 
+          i.area unit_area,  i.BEGLAT slat, i.BEGLON slong, i.mindepth dmin, i.maxdepth dmax, i.avgdepth depth, i.towdur dur, i.dopdistb dist, e.area_swept_wings_mean_km2 asw
+          FROM USNEFSC.USS_STATION I,
+          USNEFSC.USS_TOW_EVALUATION E
+          WHERE
           ",areaTweak,"
-          CRUISE6 IN (",Mar.utils::SQL_in(missions),") AND
-          STRATUM IN (",Mar.utils::SQL_in(strata),") AND
-          to_number(SHG) <= ",type," 
-          ORDER BY CRUISE6,to_number(station)", sep="")
+          i.CRUISE6 IN (",Mar.utils::SQL_in(missions),") AND
+          i.STRATUM IN (",Mar.utils::SQL_in(strata),") AND
+          I.CRUISE6=E.cruise6 AND
+          I.STATION=E.STATION AND
+          to_number(I.SHG) <= ",type," 
+          ORDER BY I.CRUISE6,to_number(I.station)", sep="")
     }
+    
 
     raw.gsinf<-oracle_cxn$thecmd(oracle_cxn$channel, sql )
     #if (agency=="NMFS") raw.gsinf$STRAT<-sprintf("%05d", raw.gsinf$STRAT)
