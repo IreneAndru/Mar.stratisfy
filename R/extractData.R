@@ -93,8 +93,9 @@ i.dmin,i.dmax,i.depth, i.dur,i.dist
     
 
     raw.gsinf<-oracle_cxn$thecmd(oracle_cxn$channel, sql )
-    if (agency=="NMFS") raw.gsinf$DIST<-raw.gsinf$ASW*(0.539957^2) #Converting the DIST variable for the US data into nautical miles for application
-   
+    if (agency=="NMFS") 
+      {raw.gsinf$DIST<-raw.gsinf$ASW*(0.539957^2) #Converting the DIST variable for the US data into nautical miles for application
+    }
       raw.gsinf$SLAT = (as.numeric(substr(raw.gsinf$SLAT,1,2))+(raw.gsinf$SLAT - as.numeric(substr(raw.gsinf$SLAT,1,2))*100)/60)
       raw.gsinf$SLONG = (as.numeric(substr(raw.gsinf$SLONG,1,2))+(raw.gsinf$SLONG - as.numeric(substr(raw.gsinf$SLONG,1,2))*100)/60)*-1
    
@@ -162,8 +163,9 @@ i.dmin,i.dmax,i.depth, i.dur,i.dist
         binIt = "length flen"
       }
       #missing fsex, sizeclass,clen
-      sql1<- paste("select cruise6 mission, to_number(station) setno, length, 
-        age, avg(indwt) fwt,
+      #Had to change the query; it was averaging cases where there were multiple fish weights for a given lengths.
+       sql1<- paste("select cruise6 mission, to_number(station) setno, length, 
+        age, indwt fwt,
         ",binIt,",
         ",sppLgrp," binwidth
         from usnefsc.uss_detail I
@@ -171,12 +173,11 @@ i.dmin,i.dmax,i.depth, i.dur,i.dist
         to_number(svspp)=",spp," AND
         CRUISE6 IN (",Mar.utils::SQL_in(missions),") AND 
         STRATUM IN (",Mar.utils::SQL_in(strata),") 
-        group by cruise6,station,age,length
+        group by cruise6,station,age,length, indwt
         ORDER BY cruise6, to_number(station)", sep="")
       raw.gsdet1<-oracle_cxn$thecmd(oracle_cxn$channel, sql1 )
-      
-      sql2<- paste("select cruise6 mission, catchsex fsex, to_number(station) setno,length, 
-        sum(expnumlen) clen, 1 size_class
+
+      sql2<- paste("select cruise6 mission, catchsex fsex, to_number(station) setno,length, sum(EXPNUMLEN) CLEN, 1 size_class
         from usnefsc.uss_lengths
         where to_number(svspp)=",spp,"
         and cruise6 in (",Mar.utils::SQL_in(missions),")
@@ -185,8 +186,24 @@ i.dmin,i.dmax,i.depth, i.dur,i.dist
         ORDER BY cruise6, to_number(station)",sep="")
       
       raw.gsdet2<-oracle_cxn$thecmd(oracle_cxn$channel, sql2 )
-      raw.gsdet<-merge(raw.gsdet1,raw.gsdet2, all.x=T) 
-      raw.gsdet$FLEN[is.na(raw.gsdet$FLEN)] <- raw.gsdet$LENGTH[is.na(raw.gsdet$FLEN)]
+      
+      #Shpeel to try and fix the times where the # fish measured for weight and the # of fish measured for length differs
+      raw.gsdet1$CLEN<-1
+      lw_check1<-aggregate(CLEN~MISSION+SETNO+LENGTH+BINWIDTH, raw.gsdet1, FUN="sum")
+      lw_check2<-subset(raw.gsdet2, select=c('MISSION','SETNO','LENGTH','CLEN'))
+      names(lw_check2)[ncol(lw_check2)]<-'CLEN2'
+      lw_check<-merge(lw_check1, lw_check2, all=TRUE)
+      lw_check<-subset(lw_check, !CLEN==CLEN2)
+      lw_check$CLEN2<-with(lw_check, CLEN2/CLEN)
+      lw_check$CLEN<-NULL
+      raw.gsdet1<-merge(raw.gsdet1, lw_check, all.x=TRUE)
+      raw.gsdet1$CLEN<-with(raw.gsdet1, ifelse(is.na(CLEN2), CLEN, CLEN2))
+      raw.gsdet1$CLEN2<-NULL
+      raw.gsdet2$CLEN<-NULL
+      #End shpeel
+      
+      raw.gsdet<-merge(raw.gsdet1,raw.gsdet2, all.x=T)
+            raw.gsdet$FLEN[is.na(raw.gsdet$FLEN)] <- raw.gsdet$LENGTH[is.na(raw.gsdet$FLEN)]
     }
     return(raw.gsdet)
   }
