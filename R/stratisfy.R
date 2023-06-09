@@ -225,10 +225,17 @@ stratisfy<-function(usepkg = 'rodbc',
     "Stratum Area Table" =  strataTable,
     "Experiment Type" = type,
     "ALK Modifications" = 'Not implemented yet')
-  
   nwData <- merge(allStrat, dfNWAgg, all.x = TRUE)
+  nwData <- merge(nwData, subset(dfStrata, select=c('STRAT','SQNM')), all.x=TRUE)
   nwData[is.na(nwData)]<-0
   nwData = rbind(nwData,c("STRAT"="TOTAL",colSums(nwData[,!(colnames(nwData) =="STRAT")],na.rm = T)))
+  
+  #Addition of Area Weighted Mean row
+  nwData$CrossProd<-with(nwData, as.numeric(MEAN_WGT)*as.numeric(SQNM))
+  MEAN_WGT_WAM<-sum(nwData$CrossProd[-(nrow(nwData))])/as.numeric(nwData$SQNM[(nrow(nwData))])
+  nwData$CrossProd<-with(nwData, as.numeric(MEAN_NO)*as.numeric(SQNM))
+  MEAN_NO_WAM<-sum(nwData$CrossProd[-(nrow(nwData))])/as.numeric(nwData$SQNM[(nrow(nwData))])
+  nwData = rbind(nwData, c("STRAT" = "AreaWeightedMean", NA,NA,NA,MEAN_WGT_WAM,MEAN_NO_WAM,NA,NA,NA,NA,NA,NA,NA,NA))
   
   nwData[,2:ncol(nwData)] <- sapply(nwData[,2:ncol(nwData)],as.numeric)
   
