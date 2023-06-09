@@ -564,6 +564,10 @@ sex option.  Please select one from the list.\n")
           strat IN (",Mar.utils::SQL_in(dfStrata[,1]),")
            ORDER BY strat", sep="")
     dfStrata.det<-oracle_cxn$thecmd(oracle_cxn$channel, sql2)
+ 
+    if (agency=="NMFS"){
+      dfStrata.det$TUNITS<-dfStrata.det$SQNM/(towDist*1.39798033) ########US seems to just use towDist... the 1.39 is the consistent difference between the TUNITS stranal is puting out and what Stratisfy has when it uses just towDist. US Helper.R code only using towDist (0.007), which implies that their tow is only 1 nautical mile and not 1.3979. I can't get a clarification from the US about which it is so for now going with what STRANAL has been doing...
+    }
     if (addZ) dfStrata.det[,"STRAT"]<-paste0(0,dfStrata.det[,"STRAT"])
     dfStrata.det= merge(dfStrata, dfStrata.det)
     dfStrata.det<-dfStrata.det[order(dfStrata.det$STRAT),] 
