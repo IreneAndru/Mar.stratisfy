@@ -290,9 +290,8 @@ stratisfy<-function(usepkg = 'rodbc',
 
     if (nrow(ageLengthKey$alk)>1){
       ageLengthKey$alk = data.frame(apply(ageLengthKey$alk, 2, function(x) as.numeric(as.character(x))))
-    ageLengthKey$alk$TOTAL = rowSums(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],na.rm = T)
-    } else {
-      ageLengthKey$alk$TOTAL = rowSums(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],na.rm = T)}
+      } 
+      ageLengthKey$alk$TOTAL = rowSums(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],na.rm = T)
     ageLengthKey$alk = rbind(ageLengthKey$alk,c("TOTAL",colSums(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],na.rm = T)))
     ageLengthKey$alk[,2:ncol(ageLengthKey$alk)] <- sapply(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],as.numeric)
     
