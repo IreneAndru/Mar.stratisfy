@@ -283,14 +283,16 @@ stratisfy<-function(usepkg = 'rodbc',
     ageLengthKey$age_table$LENGTHS <- row.names(ageLengthKey$age_table)
     ageLengthKey$age_table<-ageLengthKey$age_table[,c(ncol(ageLengthKey$age_table),1:ncol(ageLengthKey$age_table)-1)]
     ageLengthKey$age_table = data.frame(apply(ageLengthKey$age_table, 2, function(x) as.numeric(as.character(x))))
-    
-    
-    ageLengthKey$alw$LENGTHS <- row.names(ageLengthKey$alw)
+
+        ageLengthKey$alw$LENGTHS <- row.names(ageLengthKey$alw)
     ageLengthKey$alw<-ageLengthKey$alw[,c(ncol(ageLengthKey$alw),1:ncol(ageLengthKey$alw)-1)]
     #ageLengthKey$alw<-rbind(ageLengthKey$alw,c("CRAP3?",colSums(ageLengthKey$alw[,2:ncol(ageLengthKey$alw)],na.rm = T)) )
 
-    ageLengthKey$alk = data.frame(apply(ageLengthKey$alk, 2, function(x) as.numeric(as.character(x))))
+    if (nrow(ageLengthKey$alk)>1){
+      ageLengthKey$alk = data.frame(apply(ageLengthKey$alk, 2, function(x) as.numeric(as.character(x))))
     ageLengthKey$alk$TOTAL = rowSums(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],na.rm = T)
+    } else {
+      ageLengthKey$alk$TOTAL = rowSums(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],na.rm = T)}
     ageLengthKey$alk = rbind(ageLengthKey$alk,c("TOTAL",colSums(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],na.rm = T)))
     ageLengthKey$alk[,2:ncol(ageLengthKey$alk)] <- sapply(ageLengthKey$alk[,2:ncol(ageLengthKey$alk)],as.numeric)
     
